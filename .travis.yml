@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t cktran16x2/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true cktran16x2/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t cktran16x2/docker-client ./client
+  - docker build -t cktran16x2/docker-nginx ./nginx
+  - docker build -t cktran16x2/docker-server ./server
+  - docker build -t cktran16x2/docker-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push cktran16x2/docker-client
+  - docker push cktran16x2/docker-nginx
+  - docker push cktran16x2/docker-server
+  - docker push cktran16x2/docker-worker
